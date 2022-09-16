@@ -38,6 +38,13 @@ except ImportError:
 
 # Use a provided libarchive else default to hard-coded path.
 libarchivePrefix = environ.get('LIBARCHIVE_PREFIX')
+if libarchivePrefix is None:
+    import pathlib
+    for i in [ '/usr', '/usr/local', '/opt/local' ]:
+        libdir = pathlib.Path(i) / 'lib'
+        if list(libdir.glob('libarchive.*')):
+            libarchivePrefix = i
+            break
 
 if libarchivePrefix:
     includePath = libarchivePrefix + '/include'
