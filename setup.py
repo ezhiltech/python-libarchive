@@ -42,7 +42,7 @@ if libarchivePrefix is None:
     import pathlib
     for i in [ '/usr', '/usr/local', '/opt/local' ]:
         libdir = pathlib.Path(i) / 'lib'
-        if list(libdir.glob('libarchive.*')):
+        if any(libdir.glob('**/libarchive.*')):
             libarchivePrefix = i
             break
 
