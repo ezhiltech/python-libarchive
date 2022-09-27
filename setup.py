@@ -55,7 +55,7 @@ else:
 
 
 name = 'python-libarchive'
-version = '4.2.0'
+version = '4.2.1'
 readme = 'README.rst'
 repourl = 'https://github.com/smartfile/python-libarchive'
 long_description = open(readme).read()
