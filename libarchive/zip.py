@@ -1,10 +1,20 @@
-import os, time
+import os
+import time
 from libarchive import is_archive, Entry, SeekableArchive, _libarchive
 from zipfile import ZIP_STORED, ZIP_DEFLATED
 
 
 def is_zipfile(filename):
     return is_archive(filename, formats=('zip',))
+
+
+def sanitize_filename(filename):
+    # Remove leading slashes and relative path components
+    sanitized = os.path.normpath(filename).replace('..', '')
+    # Ensure the filename does not start with a separator
+    if sanitized.startswith(os.sep):
+        sanitized = sanitized[1:]
+    return sanitized
 
 
 class ZipEntry(Entry):
@@ -60,30 +70,26 @@ class ZipEntry(Entry):
     CRC = property(_get_missing, _set_missing)
     compress_size = property(_get_missing, _set_missing)
 
-# encryption is one of (traditional = zipcrypt, aes128, aes256)
+
 class ZipFile(SeekableArchive):
     def __init__(self, f, mode='r', compression=ZIP_DEFLATED, allowZip64=False, password=None,
-        encryption=None):
+                 encryption=None):
         self.compression = compression
         self.encryption = encryption
         super(ZipFile, self).__init__(
             f, mode=mode, format='zip', entry_class=ZipEntry, encoding='CP437', password=password
         )
-        
 
     getinfo = SeekableArchive.getentry
 
     def set_initial_options(self):
         if self.mode == 'w' and self.compression == ZIP_STORED:
-            # Disable compression for writing.
             _libarchive.archive_write_set_format_option(self._a, "zip", "compression", "store")
-        
+
         if self.mode == 'w' and self.password:
             if not self.encryption:
                 self.encryption = "traditional"
             _libarchive.archive_write_set_format_option(self._a, "zip", "encryption", self.encryption)
-          
-       
 
     def namelist(self):
         return list(self.iterpaths())
@@ -104,7 +110,8 @@ class ZipFile(SeekableArchive):
             self.add_passphrase(pwd)
         if not path:
             path = os.getcwd()
-        return self.readpath(name, os.path.join(path, name))
+        sanitized_name = sanitize_filename(name)
+        return self.readpath(sanitized_name, os.path.join(path, sanitized_name))
 
     def extractall(self, path, names=None, pwd=None):
         if pwd:
