@@ -26,7 +26,12 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import os, unittest, tempfile, random, string, sys
+import os
+import unittest
+import tempfile
+import random
+import string
+import sys
 import zipfile
 import io
 
@@ -308,6 +313,7 @@ class TestProtectedReading(unittest.TestCase):
         z = ZipFile(ZIPPATH, 'r', password='wrong')
         self.assertRaises(RuntimeError, z.read, ITEM_NAME)
         z.close()
+
 
 class TestProtectedWriting(unittest.TestCase):
     def setUp(self):
