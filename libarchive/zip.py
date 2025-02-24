@@ -8,14 +8,11 @@ def is_zipfile(filename):
     return is_archive(filename, formats=('zip',))
 
 
-def sanitize_filename(filename):
-    # Remove leading slashes and relative path components
-    sanitized = os.path.normpath(filename).replace('..', '')
-    # Ensure the filename does not start with a separator
-    if sanitized.startswith(os.sep):
-        sanitized = sanitized[1:]
-    return sanitized
-
+def sanitize_filename(filename, base_path=os.getcwd()):
+    abs_path = os.path.abspath(os.path.join(base_path, filename))
+    if not abs_path.startswith(os.path.abspath(base_path) + os.sep):
+        raise ValueError("Invalid filename: Potential directory traversal attempt detected.")
+    return os.path.basename(abs_path)  # Ensures only filename is extracted
 
 class ZipEntry(Entry):
     def __init__(self, *args, **kwargs):
@@ -120,7 +117,8 @@ class ZipFile(SeekableArchive):
             names = self.namelist()
         if names:
             for name in names:
-                self.extract(name, path)
+                sanitized_name = sanitize_filename(name, path)
+                self.extract(sanitized_name, path)
 
     def read(self, name, pwd=None):
         if pwd:
